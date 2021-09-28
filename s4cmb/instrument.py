@@ -28,6 +28,7 @@ from __future__ import division, absolute_import, print_function
 
 import copy
 import numpy as np
+import pandas as pd
 
 
 def coordinates_on_grid(
