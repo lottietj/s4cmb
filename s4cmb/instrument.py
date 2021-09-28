@@ -495,6 +495,7 @@ class Hardware:
         type_hwp="CRHWP",
         freq_hwp=2.0,
         angle_hwp=0.0,
+        hwp_parameter_file=None,
         verbose=False,
     ):
         """
@@ -561,6 +562,46 @@ class Hardware:
         self.pointing_model = PointingModel(pm_name)
 
         self.half_wave_plate = HalfWavePlate(type_hwp, freq_hwp, angle_hwp)
+        self.hwp_parameter_file = hwp_parameter_file
+        
+    def make_mueller(self, ca, sa):
+        # Right the next port of call is to try and get these parameters as a 'if there is a file then please take the 
+        # values but if there isn't a file then please set them all to zero
+        if self.hwp_parameter_file != None:
+            data = pd.read_excel(self.hwp_parameter_file)
+            # data = pd.read_excel('/Users/charlottebraithwaite/Documents/Making-sense-on-things/s4cmb/Matrix_parameters.xlsx', engine='openpyxl')
+            h1 = pd.DataFrame(data, columns=['h1'])
+            self.h1 = h1.to_numpy()
+            h2 = pd.DataFrame(data, columns=['h2'])
+            self.h2 = h2.to_numpy()
+            beta = pd.DataFrame(data, columns=['beta'])
+            self.beta = beta.to_numpy()
+            zeta1 = pd.DataFrame(data, columns=['zeta1'])
+            self.zeta1 = zeta1.to_numpy()
+            zeta2 = pd.DataFrame(data, columns=['zeta2'])
+            self.zeta2 = zeta2.to_numpy()
+            chi1 = pd.DataFrame(data, columns=['chi1'])
+            self.chi1 = chi1.to_numpy()
+            chi2 = pd.DataFrame(data, columns=['chi2'])
+            self.chi2 = chi2.to_numpy()
+        else:
+            self.h1 = 0.0
+            self.h2 = 0.0
+            self.beta = 0.0 
+            self.zeta1 = 0.0
+            self.zeta2 = 0.0
+            self.chi1 = 0.0
+            self.chi2 = 0.0
+        
+        j=0
+        J11 = ((1+self.h1[j])*ca**2-(1+self.h2[j])*sa**2*np.exp(1j*self.beta[j])-(self.zeta1[j]+self.zeta2[j])*ca*sa)
+        J12 = (((1+self.h1[j])+(1+self.h2[j])*np.exp(1j*self.beta[j]))*ca*sa+self.zeta1[j]*ca**2-self.zeta2[j]*sa**2)
+        M_TT = (np.abs(J11)**2+np.abs(J12)**2)   # There has been a multiply by a factor 2 here
+        M_TQ = (np.abs(J11)**2-np.abs(J12)**2)
+        M_TU = 2*(J11*J12.conjugate()).real
+        M_TV = 2*(J11*J12.conjugate()).imag
+        
+        return M_TT, M_TQ, M_TU, M_TV
 
     def make_dichroic(
         self, fwhm=1.8, beam_seed=58347, projected_fp_size=3.0, shift_angle=45
