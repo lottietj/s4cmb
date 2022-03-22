@@ -570,7 +570,6 @@ class Hardware:
         # values but if there isn't a file then please set them all to zero
         if self.hwp_parameter_file != None:
             data = pd.read_excel(self.hwp_parameter_file)
-            # data = pd.read_excel('/Users/charlottebraithwaite/Documents/Making-sense-on-things/s4cmb/Matrix_parameters.xlsx', engine='openpyxl')
             h1 = pd.DataFrame(data, columns=['h1'])
             self.h1 = h1.to_numpy()
             h2 = pd.DataFrame(data, columns=['h2'])
@@ -585,6 +584,7 @@ class Hardware:
             self.chi1 = chi1.to_numpy()
             chi2 = pd.DataFrame(data, columns=['chi2'])
             self.chi2 = chi2.to_numpy()
+            
         else:
             self.h1 = 0.0
             self.h2 = 0.0
@@ -593,11 +593,14 @@ class Hardware:
             self.zeta2 = 0.0
             self.chi1 = 0.0
             self.chi2 = 0.0
-        
+        ''' 
+        Need to make this to do a freq or detector thing because it is looking interms of the detector
+        later on in the code 
+        '''
         j=0
         J11 = ((1+self.h1[j])*ca**2-(1+self.h2[j])*sa**2*np.exp(1j*self.beta[j])-(self.zeta1[j]+self.zeta2[j])*ca*sa)
         J12 = (((1+self.h1[j])+(1+self.h2[j])*np.exp(1j*self.beta[j]))*ca*sa+self.zeta1[j]*ca**2-self.zeta2[j]*sa**2)
-        M_TT = (np.abs(J11)**2+np.abs(J12)**2)   # There has been a multiply by a factor 2 here
+        M_TT = (np.abs(J11)**2+np.abs(J12)**2)   
         M_TQ = (np.abs(J11)**2-np.abs(J12)**2)
         M_TU = 2*(J11*J12.conjugate()).real
         M_TV = 2*(J11*J12.conjugate()).imag
